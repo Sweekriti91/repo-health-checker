@@ -34,15 +34,17 @@ class AiReadinessCheckerTest {
     }
 
     // -----------------------------------------------------------------------
-    // 1. Fully AI-ready — all 6 checks pass → score 6/6
+    // 1. Fully AI-ready — all 7 checks pass → score 7/7
     // -----------------------------------------------------------------------
     @Test
-    void check_fullyReady_scoreIs6of6() throws IOException {
+    void check_fullyReady_scoreIs7of7() throws IOException {
         when(client.checkFileExists(OWNER, REPO, ".github/copilot-instructions.md"))
                 .thenReturn(true);
         when(client.checkFileExists(OWNER, REPO, ".github/copilot/agents.md"))
                 .thenReturn(true);
         when(client.hasDirectory(OWNER, REPO, ".github/copilot/skills"))
+                .thenReturn(true);
+        when(client.hasDirectory(OWNER, REPO, ".github/prompts"))
                 .thenReturn(true);
         when(client.checkFileExists(OWNER, REPO, ".gitignore"))
                 .thenReturn(true);
@@ -61,24 +63,27 @@ class AiReadinessCheckerTest {
 
         AiReadinessReport report = checker.check(OWNER, REPO);
 
-        assertThat(report.score()).isEqualTo(6);
-        assertThat(report.maxScore()).isEqualTo(6);
+        assertThat(report.score()).isEqualTo(7);
+        assertThat(report.maxScore()).isEqualTo(7);
         assertThat(report.hasCopilotInstructions()).isTrue();
         assertThat(report.hasCustomAgents()).isTrue();
         assertThat(report.hasCustomSkills()).isTrue();
         assertThat(report.hasPromptFiles()).isTrue();
         assertThat(report.hasGitignore()).isTrue();
         assertThat(report.hasFolderInstructions()).isTrue();
+        assertThat(report.hasPromptLibrary()).isTrue();
     }
 
     // -----------------------------------------------------------------------
-    // 2. Completely unready — nothing exists → score 0/6
+    // 2. Completely unready — nothing exists → score 0/7
     // -----------------------------------------------------------------------
     @Test
     void check_completelyUnready_scoreIs0() throws IOException {
         when(client.checkFileExists(anyString(), anyString(), anyString()))
                 .thenReturn(false);
         when(client.hasDirectory(OWNER, REPO, ".github/copilot/skills"))
+                .thenReturn(false);
+        when(client.hasDirectory(OWNER, REPO, ".github/prompts"))
                 .thenReturn(false);
         when(client.listDirectoryEntries(OWNER, REPO, ".github"))
                 .thenReturn(List.of());
@@ -88,17 +93,18 @@ class AiReadinessCheckerTest {
         AiReadinessReport report = checker.check(OWNER, REPO);
 
         assertThat(report.score()).isZero();
-        assertThat(report.maxScore()).isEqualTo(6);
+        assertThat(report.maxScore()).isEqualTo(7);
         assertThat(report.hasCopilotInstructions()).isFalse();
         assertThat(report.hasCustomAgents()).isFalse();
         assertThat(report.hasCustomSkills()).isFalse();
         assertThat(report.hasPromptFiles()).isFalse();
         assertThat(report.hasGitignore()).isFalse();
         assertThat(report.hasFolderInstructions()).isFalse();
+        assertThat(report.hasPromptLibrary()).isFalse();
     }
 
     // -----------------------------------------------------------------------
-    // 3. Partial — only .gitignore exists → score 1/6
+    // 3. Partial — only .gitignore exists → score 1/7
     // -----------------------------------------------------------------------
     @Test
     void check_onlyGitignore_scoreIs1() throws IOException {
@@ -107,6 +113,8 @@ class AiReadinessCheckerTest {
         when(client.checkFileExists(OWNER, REPO, ".github/copilot/agents.md"))
                 .thenReturn(false);
         when(client.hasDirectory(OWNER, REPO, ".github/copilot/skills"))
+                .thenReturn(false);
+        when(client.hasDirectory(OWNER, REPO, ".github/prompts"))
                 .thenReturn(false);
         when(client.checkFileExists(OWNER, REPO, ".gitignore"))
                 .thenReturn(true);
@@ -124,10 +132,11 @@ class AiReadinessCheckerTest {
         assertThat(report.hasCustomSkills()).isFalse();
         assertThat(report.hasPromptFiles()).isFalse();
         assertThat(report.hasFolderInstructions()).isFalse();
+        assertThat(report.hasPromptLibrary()).isFalse();
     }
 
     // -----------------------------------------------------------------------
-    // 4. Partial — copilot-instructions + agents only → score 2/6
+    // 4. Partial — copilot-instructions + agents only → score 2/7
     // -----------------------------------------------------------------------
     @Test
     void check_copilotInstructionsAndAgentsOnly_scoreIs2() throws IOException {
@@ -136,6 +145,8 @@ class AiReadinessCheckerTest {
         when(client.checkFileExists(OWNER, REPO, ".github/copilot/agents.md"))
                 .thenReturn(true);
         when(client.hasDirectory(OWNER, REPO, ".github/copilot/skills"))
+                .thenReturn(false);
+        when(client.hasDirectory(OWNER, REPO, ".github/prompts"))
                 .thenReturn(false);
         when(client.checkFileExists(OWNER, REPO, ".gitignore"))
                 .thenReturn(false);
@@ -147,13 +158,14 @@ class AiReadinessCheckerTest {
         AiReadinessReport report = checker.check(OWNER, REPO);
 
         assertThat(report.score()).isEqualTo(2);
-        assertThat(report.maxScore()).isEqualTo(6);
+        assertThat(report.maxScore()).isEqualTo(7);
         assertThat(report.hasCopilotInstructions()).isTrue();
         assertThat(report.hasCustomAgents()).isTrue();
         assertThat(report.hasCustomSkills()).isFalse();
         assertThat(report.hasPromptFiles()).isFalse();
         assertThat(report.hasGitignore()).isFalse();
         assertThat(report.hasFolderInstructions()).isFalse();
+        assertThat(report.hasPromptLibrary()).isFalse();
     }
 
     // -----------------------------------------------------------------------
@@ -164,6 +176,8 @@ class AiReadinessCheckerTest {
         when(client.checkFileExists(anyString(), anyString(), anyString()))
                 .thenReturn(false);
         when(client.hasDirectory(OWNER, REPO, ".github/copilot/skills"))
+                .thenReturn(false);
+        when(client.hasDirectory(OWNER, REPO, ".github/prompts"))
                 .thenReturn(false);
 
         // .github contains a subdirectory "prompts"
@@ -183,6 +197,29 @@ class AiReadinessCheckerTest {
         AiReadinessReport report = checker.check(OWNER, REPO);
 
         assertThat(report.hasPromptFiles()).isTrue();
+        assertThat(report.score()).isEqualTo(1);
+    }
+
+    // -----------------------------------------------------------------------
+    // 8. Prompt library directory exists → hasPromptLibrary true
+    // -----------------------------------------------------------------------
+    @Test
+    void check_promptLibraryDirectoryExists_detected() throws IOException {
+        when(client.checkFileExists(anyString(), anyString(), anyString()))
+                .thenReturn(false);
+        when(client.hasDirectory(OWNER, REPO, ".github/copilot/skills"))
+                .thenReturn(false);
+        when(client.hasDirectory(OWNER, REPO, ".github/prompts"))
+                .thenReturn(true);
+        when(client.listDirectoryEntries(OWNER, REPO, ".github"))
+                .thenReturn(List.of());
+        when(client.listDirectoryEntries(OWNER, REPO, "src"))
+                .thenReturn(List.of());
+
+        AiReadinessReport report = checker.check(OWNER, REPO);
+
+        assertThat(report.hasPromptLibrary()).isTrue();
+        assertThat(report.hasPromptFiles()).isFalse();
         assertThat(report.score()).isEqualTo(1);
     }
 
@@ -208,6 +245,8 @@ class AiReadinessCheckerTest {
                 .thenReturn(false);
         when(client.hasDirectory(OWNER, REPO, ".github/copilot/skills"))
                 .thenReturn(false);
+        when(client.hasDirectory(OWNER, REPO, ".github/prompts"))
+                .thenReturn(false);
 
         // Entry missing "type" key — should be skipped without error
         when(client.listDirectoryEntries(OWNER, REPO, ".github"))
@@ -223,6 +262,7 @@ class AiReadinessCheckerTest {
 
         assertThat(report.hasPromptFiles()).isFalse();
         assertThat(report.hasFolderInstructions()).isFalse();
+        assertThat(report.hasPromptLibrary()).isFalse();
         assertThat(report.score()).isZero();
     }
 }

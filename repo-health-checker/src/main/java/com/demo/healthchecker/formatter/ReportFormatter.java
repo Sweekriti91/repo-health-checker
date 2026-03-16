@@ -81,6 +81,7 @@ public class ReportFormatter {
         sb.append(String.format("  Prompt files:           %s%n", bool(ai.hasPromptFiles())));
         sb.append(String.format("  .gitignore:             %s%n", bool(ai.hasGitignore())));
         sb.append(String.format("  Folder instructions:    %s%n", bool(ai.hasFolderInstructions())));
+        sb.append(String.format("  Prompt library:         %s%n", bool(ai.hasPromptLibrary())));
         sb.append(String.format("  AI readiness score:     %d / %d%n", ai.score(), ai.maxScore()));
 
         return sb.toString();
@@ -114,6 +115,7 @@ public class ReportFormatter {
         aiNode.put("hasPromptFiles", ai.hasPromptFiles());
         aiNode.put("hasGitignore", ai.hasGitignore());
         aiNode.put("hasFolderInstructions", ai.hasFolderInstructions());
+        aiNode.put("hasPromptLibrary", ai.hasPromptLibrary());
         aiNode.put("score", ai.score());
         aiNode.put("maxScore", ai.maxScore());
 

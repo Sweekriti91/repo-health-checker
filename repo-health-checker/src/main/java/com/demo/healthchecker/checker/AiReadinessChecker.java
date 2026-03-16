@@ -12,7 +12,7 @@ import java.util.Map;
 /**
  * Evaluates how well a GitHub repository is prepared for AI-assisted development.
  *
- * <p>The checker inspects six indicators and produces a score from 0 to 6:
+ * <p>The checker inspects seven indicators and produces a score from 0 to 7:
  * <ol>
  *   <li>Copilot instructions ({@code .github/copilot-instructions.md})</li>
  *   <li>Custom agents ({@code .github/copilot/agents.md})</li>
@@ -20,12 +20,13 @@ import java.util.Map;
  *   <li>Prompt files ({@code *.prompt.md} under {@code .github/})</li>
  *   <li>{@code .gitignore} file</li>
  *   <li>Folder-level instructions ({@code *.instructions.md} under {@code src/})</li>
+ *   <li>Prompt library ({@code .github/prompts/} directory)</li>
  * </ol>
  */
 public class AiReadinessChecker {
 
     private static final Logger logger = LoggerFactory.getLogger(AiReadinessChecker.class);
-    private static final int MAX_SCORE = 6;
+    private static final int MAX_SCORE = 7;
 
     private final GitHubApiClient client;
 
@@ -55,6 +56,7 @@ public class AiReadinessChecker {
         boolean hasPromptFiles = checkPromptFiles(owner, repo);
         boolean hasGitignore = checkGitignore(owner, repo);
         boolean hasFolderInstructions = checkFolderInstructions(owner, repo);
+        boolean hasPromptLibrary = checkPromptLibrary(owner, repo);
 
         int score = 0;
         if (hasCopilotInstructions) score++;
@@ -63,6 +65,7 @@ public class AiReadinessChecker {
         if (hasPromptFiles) score++;
         if (hasGitignore) score++;
         if (hasFolderInstructions) score++;
+        if (hasPromptLibrary) score++;
 
         logger.info("AI readiness check complete for {}/{}: score={}/{}", owner, repo, score, MAX_SCORE);
 
@@ -73,6 +76,7 @@ public class AiReadinessChecker {
                 hasPromptFiles,
                 hasGitignore,
                 hasFolderInstructions,
+                hasPromptLibrary,
                 score,
                 MAX_SCORE
         );
@@ -117,6 +121,13 @@ public class AiReadinessChecker {
         logger.info("Checking for *.instructions.md files under src/...");
         boolean exists = hasFileWithSuffix(owner, repo, "src", ".instructions.md");
         logger.info("Found .instructions.md file under src/: {}", exists);
+        return exists;
+    }
+
+    private boolean checkPromptLibrary(String owner, String repo) throws IOException {
+        logger.info("Checking for .github/prompts/ prompt library directory...");
+        boolean exists = client.hasDirectory(owner, repo, ".github/prompts");
+        logger.info(".github/prompts/ directory exists: {}", exists);
         return exists;
     }
 
