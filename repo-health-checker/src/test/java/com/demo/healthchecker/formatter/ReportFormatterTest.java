@@ -37,7 +37,7 @@ class ReportFormatterTest {
                 95
         );
         AiReadinessReport ai = new AiReadinessReport(
-                true, false, false, true, true, false, 3, 6
+                true, false, false, true, true, false, false, 3, 7
         );
 
         String output = formatter.format(health, ai, "text");
@@ -59,7 +59,8 @@ class ReportFormatterTest {
         assertThat(output).contains("Rating:          Excellent");
         assertThat(output).contains("=== AI Readiness Report ===");
         assertThat(output).contains("Copilot instructions:");
-        assertThat(output).contains("AI readiness score:     3 / 6");
+        assertThat(output).contains("Prompt library:");
+        assertThat(output).contains("AI readiness score:     3 / 7");
     }
 
     @Test
@@ -72,7 +73,7 @@ class ReportFormatterTest {
                 10
         );
         AiReadinessReport ai = new AiReadinessReport(
-                false, false, false, false, false, false, 0, 6
+                false, false, false, false, false, false, false, 0, 7
         );
 
         String output = formatter.format(health, ai, "text");
@@ -106,7 +107,7 @@ class ReportFormatterTest {
                 90
         );
         AiReadinessReport ai = new AiReadinessReport(
-                true, true, true, true, true, true, 6, 6
+                true, true, true, true, true, true, true, 7, 7
         );
 
         String json = formatter.format(health, ai, "json");
@@ -143,8 +144,9 @@ class ReportFormatterTest {
         assertThat(aiNode.get("hasPromptFiles").asBoolean()).isTrue();
         assertThat(aiNode.get("hasGitignore").asBoolean()).isTrue();
         assertThat(aiNode.get("hasFolderInstructions").asBoolean()).isTrue();
-        assertThat(aiNode.get("score").asInt()).isEqualTo(6);
-        assertThat(aiNode.get("maxScore").asInt()).isEqualTo(6);
+        assertThat(aiNode.get("hasPromptLibrary").asBoolean()).isTrue();
+        assertThat(aiNode.get("score").asInt()).isEqualTo(7);
+        assertThat(aiNode.get("maxScore").asInt()).isEqualTo(7);
     }
 
     @Test
@@ -254,7 +256,7 @@ class ReportFormatterTest {
     }
 
     private static AiReadinessReport buildAiReport(int score) {
-        return new AiReadinessReport(false, false, false, false, false, false, score, 6);
+        return new AiReadinessReport(false, false, false, false, false, false, false, score, 7);
     }
 }
 
